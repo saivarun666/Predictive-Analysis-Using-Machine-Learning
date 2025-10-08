@@ -1,0 +1,48 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+
+# Load the dataset
+df = pd.read_csv("software_jobs.csv")
+
+# Clean Salary Column (remove ₹ and commas, convert to numeric)
+df['Salary'] = df['Salary'].replace('[₹,]', '', regex=True).astype(float)
+
+# Clean Experience Column
+df['Min Experience'] = df['Experience Required'].str.extract(r'(\d+)').astype(float)
+
+# --- Visualization 1: Job Distribution by Location ---
+plt.figure(figsize=(10,6))
+sns.countplot(y='Location', data=df, order=df['Location'].value_counts().index)
+plt.title("Number of Job Postings by Location")
+plt.xlabel("Count")
+plt.ylabel("Location")
+plt.tight_layout()
+plt.show()
+
+# --- Visualization 2: Average Salary by Job Title ---
+avg_salary = df.groupby('Job Title')['Salary'].mean().sort_values(ascending=False)
+plt.figure(figsize=(10,6))
+sns.barplot(x=avg_salary.values, y=avg_salary.index)
+plt.title("Average Salary by Job Title")
+plt.xlabel("Average Salary (INR)")
+plt.ylabel("Job Title")
+plt.tight_layout()
+plt.show()
+
+# --- Visualization 3: Experience vs Salary Scatter Plot ---
+plt.figure(figsize=(8,6))
+sns.scatterplot(data=df, x='Min Experience', y='Salary', hue='Location')
+plt.title("Experience vs Salary")
+plt.xlabel("Minimum Experience (years)")
+plt.ylabel("Salary (INR)")
+plt.tight_layout()
+plt.show()
+
+# --- Visualization 4: Interactive Job Postings by Date (Plotly) ---
+df['Posted Date'] = pd.to_datetime(df['Posted Date'])
+daily_jobs = df.groupby('Posted Date').size().reset_index(name='Job Count')
+
+fig = px.line(daily_jobs, x='Posted Date', y='Job Count', title='Job Postings Over Time')
+fig.show()
